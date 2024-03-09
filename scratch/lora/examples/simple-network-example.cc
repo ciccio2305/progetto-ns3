@@ -22,31 +22,16 @@
  * packet to the gateway.
  */
 
-#include "ns3/command-line.h"
-#include "ns3/constant-position-mobility-model.h"
-#include "ns3/end-device-lora-phy.h"
-#include "ns3/end-device-lorawan-mac.h"
-#include "ns3/gateway-lora-phy.h"
-#include "ns3/gateway-lorawan-mac.h"
-#include "ns3/log.h"
-#include "ns3/lora-helper.h"
-#include "ns3/mobility-helper.h"
-#include "ns3/node-container.h"
-#include "ns3/one-shot-sender-helper.h"
-#include "ns3/position-allocator.h"
-#include "ns3/simulator.h"
-
-#include <algorithm>
-#include <ctime>
+#include "myClass.h"
 
 using namespace ns3;
 using namespace lorawan;
-
+using namespace std;
 NS_LOG_COMPONENT_DEFINE("SimpleLorawanNetworkExample");
 
 void sendPacket(Ptr<LoraNetDevice> loraNetDevice)
 {
-    std::cout << "sending packet" << std::endl;
+    cout << "sending packet" << endl;
     Ptr<Packet> pkt = Create<Packet>(100);
 
     loraNetDevice->GetMac()->Send(pkt);
@@ -106,11 +91,13 @@ main(int argc, char* argv[])
     allocator->Add(Vector(0, 0, 0));
     mobility.SetPositionAllocator(allocator);
     mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    
+    Ptr<Node> nodo = CreateObject<Node>();
+
 
     // Create the LoraPhyHelper
     LoraPhyHelper phyHelper = LoraPhyHelper();
     phyHelper.SetChannel(channel);
-
     // Create the LorawanMacHelper
     LorawanMacHelper macHelper = LorawanMacHelper();
 
