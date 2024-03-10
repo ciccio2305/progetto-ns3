@@ -22,19 +22,18 @@
  * packet to the gateway.
  */
 
-#include "myClass.h"
+#include "myClass.cc"
 
 using namespace ns3;
 using namespace lorawan;
-using namespace std;
 NS_LOG_COMPONENT_DEFINE("SimpleLorawanNetworkExample");
 
-void sendPacket(Ptr<LoraNetDevice> loraNetDevice)
+void sendPacket(Ptr<my_device_with_lora> Device)
 {
-    cout << "sending packet" << endl;
+    std::cout << "sending packet" << std::endl;
     Ptr<Packet> pkt = Create<Packet>(100);
 
-    loraNetDevice->GetMac()->Send(pkt);
+    Device->Send(pkt);
 }
 
 int
@@ -70,88 +69,34 @@ main(int argc, char* argv[])
 
     NS_LOG_INFO("Creating the channel...");
 
+    std::cout << "Creating the channel..." << std::endl;
+
     // Create the lora channel object
     Ptr<LogDistancePropagationLossModel> loss = CreateObject<LogDistancePropagationLossModel>();
     loss->SetPathLossExponent(3.76);
     loss->SetReference(1, 7.7);
 
     Ptr<PropagationDelayModel> delay = CreateObject<ConstantSpeedPropagationDelayModel>();
-
+   
     Ptr<LoraChannel> channel = CreateObject<LoraChannel>(loss, delay);
+    Ptr<LogicalLoraChannelHelper> channelHelper = CreateObject<LogicalLoraChannelHelper>(); 
 
-    /************************
-     *  Create the helpers  *
-     ************************/
+    Ptr<my_device_with_lora> mydevice= CreateObject<my_device_with_lora>();
+    Ptr<my_device_with_lora> mydevice2= CreateObject<my_device_with_lora>();
 
-    NS_LOG_INFO("Setting up helpers...");
+    Ptr<Node> nodo= CreateObject<Node>();
+    Ptr<Node> nodo2= CreateObject<Node>();
 
-    MobilityHelper mobility;
-    Ptr<ListPositionAllocator> allocator = CreateObject<ListPositionAllocator>();
-    allocator->Add(Vector(1000, 0, 0));
-    allocator->Add(Vector(0, 0, 0));
-    mobility.SetPositionAllocator(allocator);
-    mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-    
-    Ptr<Node> nodo = CreateObject<Node>();
-
-
-    // Create the LoraPhyHelper
     LoraPhyHelper phyHelper = LoraPhyHelper();
     phyHelper.SetChannel(channel);
-    // Create the LorawanMacHelper
-    LorawanMacHelper macHelper = LorawanMacHelper();
-
-    // Create the LoraHelper
-    LoraHelper helper = LoraHelper();
-
-    /************************
-     *  Create End Devices  *
-     ************************/
-
-    NS_LOG_INFO("Creating the end device...");
-
-    // Create a set of nodes
-    NodeContainer endDevices;
-    endDevices.Create(3);
-
-    // Assign a mobility model to the node
-    mobility.Install(endDevices);
-
-    // Create the LoraNetDevices of the end devices
     phyHelper.SetDeviceType(LoraPhyHelper::ED);
-    macHelper.SetDeviceType(LorawanMacHelper::ED_A);
-    helper.Install(phyHelper, macHelper, endDevices);
+    
 
-    /*********************
-     *  Create Gateways  *
-     *********************/
-
-    NS_LOG_INFO("Creating the gateway...");
-    NodeContainer gateways;
-    gateways.Create(1);
-
-    mobility.Install(gateways);
-
-    // Create a netdevice for each gateway
-    phyHelper.SetDeviceType(LoraPhyHelper::GW);
-    macHelper.SetDeviceType(LorawanMacHelper::GW);
-    helper.Install(phyHelper, macHelper, gateways);
-
-    /*********************************************
-     *  Install applications on the end devices  *
-     *********************************************/
-
-    OneShotSenderHelper oneShotSenderHelper;
-    oneShotSenderHelper.SetSendTime(Seconds(2));
-
-    oneShotSenderHelper.Install(endDevices);
-     
-    Simulator::Schedule(Seconds(2), sendPacket , endDevices.Get(0)->GetDevice(0)->GetObject<LoraNetDevice>());
-    /******************
-     * Set Data Rates *
-     ******************/
-    std::vector<int> sfQuantity(6);
-    sfQuantity = LorawanMacHelper::SetSpreadingFactorsUp(endDevices, gateways, channel);
+    mydevice->SetPhy(phyHelper.Create(nodo, mydevice), channelHelper);
+    mydevice2->SetPhy(phyHelper.Create(nodo2, mydevice2), channelHelper);
+    
+    Simulator::Schedule(Seconds(2), sendPacket , mydevice);
+    
 
     /****************
      *  Simulation  *

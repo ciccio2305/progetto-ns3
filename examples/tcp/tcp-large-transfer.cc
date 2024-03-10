@@ -171,7 +171,7 @@ main(int argc, char* argv[])
     // "Application".
 
     // Create and bind the socket...
-    Ptr<Socket> localSocket = Socket::CreateSocket(n0n1.Get(0), TcpSocketFactory::GetTypeId());
+    Ptr<Socket> localSocket = Socket::CreateSocket(n0n1.Get(0), TcpSocketFactory::GetGetTypeId()TypeId());
     localSocket->Bind();
 
     // Trace changes to the congestion window
